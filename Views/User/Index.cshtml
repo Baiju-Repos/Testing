@@ -1,0 +1,157 @@
+﻿@model IEnumerable<Okta_Web.Models.User>
+@{
+    var count = 1;
+}
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 33px;
+        height: 20px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 21px;
+            left: 1px;
+            bottom: 2px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #3ea7c9;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(10px);
+        -ms-transform: translateX(10px);
+        transform: translateX(10px);
+    }
+
+    .slider.round {
+        border-radius: 34px;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+</style>
+<p>
+    <a href="/User/CreateUser">Create New</a>
+</p>
+<table class="table" id="usersTbl">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr data-id="@item.id">
+                <td>@item.profile?.firstName</td>
+                <td>@item.profile?.lastName</td>
+                <td>@item.profile?.email</td>
+                <td>@item.created</td>
+                <td>
+                    <label class="switch" title="Activate/Deactivate User">
+                        <input type="checkbox" id="chkbx_@item.id" class="activateDeactivateUserChkBx" @(item.status.ToLower() == "active" ? "checked" : "") data-userid="@item.id">
+                        <span class="slider round"></span>
+                    </label>
+                    | <i class="fa fa-delete" onclick="deleteUser(this)" style="cursor:pointer" data-userid="@item.id">Delete</i>
+                </td>
+            </tr>
+            count++;
+        }
+    </tbody>
+</table>
+<script>
+    $(document).ready(function () {
+        getToken();
+    });
+    $(document).on("click", "#usersTbl tbody tr", function (evt) {
+        var cell = $(evt.target).closest('td');
+        if (cell.index() > 0) {
+            window.location.href = "/TicketManagement/Details/" + $(this).attr("data-id");
+        }
+    });
+    $(".activateDeactivateUserChkBx").change(function () {
+        var isActivate = $(this).is(":checked") ? true : false;
+        var userId = $(this).attr("data-userid");
+        $(this).attr("disabled", true);
+        $(".activateDeactivateUserChkBx").attr("disabled", true);
+        $.ajax({
+            url: "/UpdateUserStatus/" + userId + "/" + isActivate,
+            type: "PUT",
+            success: function (data) {
+                if (data !== null) {
+                    displayAlerts(data.message, data.result);
+                }
+                $(this).attr("disabled", true);
+            },
+            error: function (data) {
+                displayAlerts("Error occured while updating User Status.", false);
+                $(this).attr("disabled", true);
+            }
+        });
+    });
+    function deleteUser(ctrl) {
+        var userId = $(ctrl).attr("data-userid");
+        $.ajax({
+            url: "/DeleteUser/" + userId,
+            type: "Delete",
+            success: function (data) {
+                if (data !== null) {
+                    displayAlerts(data.message, data.result);
+                }
+            },
+            error: function (data) {
+                displayAlerts("Error occured while deleting user.", false);
+            }
+        });
+    }
+    function getToken() {
+        $.ajax({
+            url: "/GetToken",
+            type: "GET",
+            success: function (data) {
+                if (data !== null) {
+                    displayAlerts(data.message, data.result);
+                }
+            },
+            error: function (data) {
+                displayAlerts("Error occured while deleting user.", false);
+            }
+        });
+    }
+</script>

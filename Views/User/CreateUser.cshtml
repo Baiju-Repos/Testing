@@ -1,0 +1,66 @@
+﻿@model Okta_Web.Models.CreateUser
+@{
+    ViewBag.Title = "Create User";
+}
+<div class="row">
+    <div class="col-md-3"></div>
+    <div class="col-md-6">
+        <div class="signup-form">
+            <div id="userDataDiv">
+                <h2>Register</h2>
+                <p class="hint-text">Create your account.</p>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col">
+                            @Html.TextBoxFor(m => m.profile.firstName, new { @class = "form-control", @placeholder = "First Name" })
+                        </div>
+                        <div class="col">
+                            @Html.TextBoxFor(m => m.profile.lastName, new { @class = "form-control", @placeholder = "Last Name" })
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(m => m.profile.email, new { @class = "form-control", @placeholder = "Email" })
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(m => m.profile.login, new { @class = "form-control", @placeholder = "User Name" })
+                </div>
+                <div class="form-group">
+                    @Html.PasswordFor(m => m.credentials.password.value, new { @class = "form-control", @placeholder = "Password" })
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(m => m.credentials.recovery_question.question, new { @class = "form-control", @placeholder = "Question" })
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(m => m.credentials.recovery_question.answer, new { @class = "form-control", @placeholder = "Answer" })
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-success btn-lg btn-block" id="registerBtn">Register Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3"></div>
+</div>
+<script>
+    $("#registerBtn").click(function () {
+        $(this).attr("disabled", true);
+        $.ajax({
+            url: "/User/CreateUser",
+            type: "POST",
+            data: $("#userDataDiv *").serialize(),
+            success: function (data) {
+                displayAlerts(data.message, data.success);
+                setTimeout(redirectToIndex(), 500);
+            },
+            error: function (data) {
+                console.log(data);
+                $(this).attr("disabled", true);
+                displayAlerts("Error occured while saving user details.", false);
+            }
+        });
+    })
+    function redirectToIndex() {
+        window.location.href = "/User/Index";
+    }
+</script>
